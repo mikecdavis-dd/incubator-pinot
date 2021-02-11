@@ -18,6 +18,8 @@
  */
 package org.apache.pinot.core.segment.name;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import javax.annotation.Nullable;
 
 
@@ -44,8 +46,15 @@ public class SimpleSegmentNameGenerator implements SegmentNameGenerator {
 
   @Override
   public String generateSegmentName(int sequenceId, @Nullable Object minTimeValue, @Nullable Object maxTimeValue) {
-    return JOINER
-        .join(_tableName, minTimeValue, maxTimeValue, _segmentNamePostfix, sequenceId >= 0 ? sequenceId : null);
+    try {
+      return URLEncoder.encode(
+          JOINER.join(_tableName, minTimeValue, maxTimeValue, _segmentNamePostfix, sequenceId >= 0 ? sequenceId : null),
+          "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(
+          "Unable to generate segment name based on minTimeValue: " + minTimeValue + ", maxTimeValue: " + maxTimeValue
+              + ", sequenceId: " + sequenceId);
+    }
   }
 
   @Override
